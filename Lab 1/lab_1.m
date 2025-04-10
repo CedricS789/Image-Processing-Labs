@@ -102,30 +102,171 @@ end
 %
 % ============================================================================
 clear; close all; clc;
-image_matrix = zeros(128, 128);         % Create a 128x128 matrix of zeros (black image)
-image_matrix(64-3:64+3, 34:96) = 1;     % Create a horizontal white line in the middle of the image 
-imshow(image_matrix);                   % Display the image
 
-% ---- compute the 2D DFT ----
-dft_coeffs = fft2(image_matrix); disp('Size of DFT coefficients matrix:'); disp(size(dft_coeffs));
+% ---- Create the original image and its rotations ----
+image_matrix = zeros(128, 128);                     % Create a 128x128 matrix of zeros (black image)
+image_matrix(64-3:64+3, 34:96) = 1;                 % Create a horizontal white line in the middle of the image
+image_matrix_rot_45 = imrotate(image_matrix, 45);   % Rotate the image by 45 degrees
+image_matrix_rot_60 = imrotate(image_matrix, 60);   % Rotate the image by 60 degrees
+image_matrix_rot_90 = imrotate(image_matrix, 90);   % Rotate the image by 90 degrees
 
-% ---- shif the zero-frequency component to the center of the secptrum ----
-dft_shifted = fftshift(dft_coeffs); disp('DFT coefficients shifted!');
+% ---- Display all original and rotated images in one figure ----
+figure;                                             % New figure for the images
+subplot(2, 2, 1);
+imshow(image_matrix);
+title('Original (0 degrees)');
+
+subplot(2, 2, 2);
+imshow(image_matrix_rot_45);
+title('Rotated 45 degrees');
+
+subplot(2, 2, 3);
+imshow(image_matrix_rot_60);
+title('Rotated 60 degrees');
+
+subplot(2, 2, 4);
+imshow(image_matrix_rot_90);
+title('Rotated 90 degrees');
+sgtitle('Original and Rotated Images');             % Overall title for the figure (requires R2018b or later)
+
+
+% ---- compute the 2D DFT for all images ----
+dft_coeffs = fft2(image_matrix);
+dft_coeffs_rot_45 = fft2(image_matrix_rot_45);
+dft_coeffs_rot_60 = fft2(image_matrix_rot_60);
+dft_coeffs_rot_90 = fft2(image_matrix_rot_90);
+
+
+% ---- shift the zero-frequency component to the center of the spectrum for all ----
+dft_shifted = fftshift(dft_coeffs);
+dft_shifted_rot_45 = fftshift(dft_coeffs_rot_45);
+dft_shifted_rot_60 = fftshift(dft_coeffs_rot_60);
+dft_shifted_rot_90 = fftshift(dft_coeffs_rot_90);
+
+% ---- Calculate magnitude spectrum for all ----
 magnitude_spectrum = abs(dft_shifted);
+magnitude_spectrum_rot_45 = abs(dft_shifted_rot_45);
+magnitude_spectrum_rot_60 = abs(dft_shifted_rot_60);
+magnitude_spectrum_rot_90 = abs(dft_shifted_rot_90);
 
-% Display using imagesc (as per Ex 4 instructions) - without log scaling
-figure; % New figure for imagesc view
+% ---- Display all magnitude spectra using imagesc in one figure ----
+figure;                                             % New figure for imagesc view
+subplot(2, 2, 1);
 imagesc(magnitude_spectrum);
-axis image;
-colormap gray;
-colorbar;
-title('Exercise 4: Magnitude Spectrum (imagesc)');
+axis image; colormap gray; colorbar;
+title('Magnitude Spectrum (0 deg)');
 
-% Display using surfc (as per Ex 4 instructions) - also uses magnitude
+subplot(2, 2, 2);
+imagesc(magnitude_spectrum_rot_45);
+axis image; colormap gray; colorbar;
+title('Magnitude Spectrum (45 deg)');
+
+subplot(2, 2, 3);
+imagesc(magnitude_spectrum_rot_60);
+axis image; colormap gray; colorbar;
+title('Magnitude Spectrum (60 deg)');
+
+subplot(2, 2, 4);
+imagesc(magnitude_spectrum_rot_90);
+axis image; colormap gray; colorbar;
+title('Magnitude Spectrum (90 deg)');
+sgtitle('Magnitude Spectra (imagesc view)');            % Overall title
+
+% ---- Display all magnitude spectra using surfc in one figure ----
 figure; % New figure for surfc view
+subplot(2, 2, 1);
 surfc(magnitude_spectrum);
-shading interp; % Makes the surface look smoother
-title('Exercise 4: Magnitude Spectrum (surfc)');
-xlabel('Frequency component l');
-ylabel('Frequency component k');
-zlabel('Magnitude');
+title('Magnitude Spectrum (0 deg)');
+xlabel('Frequency component l'); ylabel('Frequency component k'); zlabel('Magnitude');
+
+subplot(2, 2, 2);
+surfc(magnitude_spectrum_rot_45);
+title('Magnitude Spectrum (45 deg)');
+xlabel('Frequency component l'); ylabel('Frequency component k'); zlabel('Magnitude');
+
+subplot(2, 2, 3);
+surfc(magnitude_spectrum_rot_60);
+title('Magnitude Spectrum (60 deg)');
+xlabel('Frequency component l'); ylabel('Frequency component k'); zlabel('Magnitude');
+
+subplot(2, 2, 4);
+surfc(magnitude_spectrum_rot_90);
+title('Magnitude Spectrum (90 deg)');
+xlabel('Frequency component l'); ylabel('Frequency component k'); zlabel('Magnitude');
+sgtitle('Magnitude Spectra (surfc view)');          % Overall title
+
+
+%% ================= Exercise 5: =================
+%
+% ================================================
+clear; close all; clc;
+
+% Read the grayscale images
+A = imread('mandrill.tif', 'TIF');
+B = imread('zebra.tif', 'TIF');
+
+% Compute the DFT
+dft_A = fft2(A);
+dft_B = fft2(B);
+
+% Extract modulus (magnitude) and phase values (use abs and angle)
+mag_A   = abs(dft_A);
+phase_A = angle(dft_A);
+mag_B   = abs(dft_B);
+phase_B = angle(dft_B);
+
+% Calculate shifted magnitude spectra (use fftshift)
+mag_A_shifted = fftshift(mag_A);
+mag_B_shifted = fftshift(mag_B);
+
+% Represent the log10 of the modulus & shifted variants (use log10 of 1+modulus, and imshow(..., []))
+% Using subplot for better organization
+figure('Name', 'Log Magnitude Spectra');
+
+% Image A: Unshifted vs Shifted
+subplot(2, 2, 1);
+imshow(log10(1 + mag_A), []); % Unshifted
+title('Log Mag Spectrum A (Unshifted)');
+colorbar;
+
+subplot(2, 2, 2);
+imshow(log10(1 + mag_A_shifted), []); % Shifted
+title('Log Mag Spectrum A (Shifted)');
+colorbar;
+
+% Image B: Unshifted vs Shifted
+subplot(2, 2, 3);
+imshow(log10(1 + mag_B), []); % Unshifted
+title('Log Mag Spectrum B (Unshifted)');
+colorbar;
+
+subplot(2, 2, 4);
+imshow(log10(1 + mag_B_shifted), []); % Shifted
+title('Log Mag Spectrum B (Shifted)');
+colorbar;
+
+sgtitle('Unshifted vs Shifted Log Magnitude Spectra'); % Overall title (R2018b+)
+
+% Create two new DFTs by swapping magnitude and phase (use 1i)
+new_dft1 = mag_A .* exp(1i * phase_B); % A's Magnitude + B's Phase
+new_dft2 = mag_B .* exp(1i * phase_A); % B's Magnitude + A's Phase
+
+% Compute the inverse transform (use ifft2)
+recon_image1 = round(ifft2(new_dft1));
+recon_image2 = round(ifft2(new_dft2));
+
+% Show the resulting pictures (use round on ifft coefficients, and imshow(..., ()))
+% Using subplot for better organization
+figure('Name', 'Reconstructed Images');
+
+subplot(1, 2, 1);
+imshow(recon_image1, []);
+title('Recon 1 (Mag A + Phase B)');
+
+subplot(1, 2, 2);
+imshow(recon_image2, []); 
+title('Recon 2 (Mag B + Phase A)');
+
+sgtitle('Reconstructed Images from Swapped Components'); % Overall title (R2018b+)
+
+% The final step is to observe these reconstructions and comment on the results.
