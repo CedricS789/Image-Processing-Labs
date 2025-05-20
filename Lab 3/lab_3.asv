@@ -1,0 +1,44 @@
+%% ================= Exercise 11: =================
+% Adding Gaussian noise and filtering with a Gaussian filter
+% =================================================
+clear; close all; clc;
+img = imread('lenagray.tif');
+
+% ---- Gaussian noise + Gaussian filtering ----
+img_double = im2double(img);
+img_noisy = imnoise(img_double, 'gaussian', 0, 0.1);
+img_ano = anisodiff(img_noisy, 70, 0.1);
+h_gaussian = fspecial('gaussian', 5, sqrt(2*70/10));
+img_gaussian = conv2(img_noisy, h_gaussian, 'same');
+
+figure;
+subplot(2, 3, 1);
+imshow(img);
+title('Original Image (lenagray.tif)');
+
+subplot(2, 3, 2);
+imshow(img_double);
+title('Double Image (lenagray.tif)');
+
+subplot(2, 3, 3);
+imshow(img_noisy);
+title('Noisy Image (Gaussian noise)');
+
+subplot(2, 3, 4);
+imshow(img_ano);
+title('Anisotropic Diffusion Image (lenagray.tif)');
+
+subplot(2, 3, 5);
+imshow(img_gaussian);
+title('Gaussian Blurred Image (lenagray.tif)');
+
+
+
+%% ================= Exercise 11: =================
+% Adding Salt & Pepper noise and filtering with a median filter
+% =================================================
+clear; close all; clc;
+img = imread('cameraman.tif');
+img_double = im2double(img);
+img_noisy = imnoise(img_double, 'salt & pepper', 0.1);
+median_filter = dsp.MedianFilter(img_noisy);
